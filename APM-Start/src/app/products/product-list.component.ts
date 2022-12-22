@@ -15,7 +15,13 @@ import { ProductService } from './product.service';
 export class ProductListComponent {
   pageTitle = 'Product List';
   errorMessage = '';
-  categories$: Observable<ProductCategory[]> = this.categoryService.productCategories$;
+  categories$: Observable<ProductCategory[]> = this.categoryService.productCategories$
+  .pipe(
+    catchError(err => {
+      this.errorMessage = err;
+      return EMPTY;
+    })
+  );
   selectedCategory = 1;
   selectedCategorySubject$ = new BehaviorSubject<number>(0);
   selectedCategoryAction$ = this.selectedCategorySubject$.asObservable();
@@ -41,7 +47,6 @@ export class ProductListComponent {
   }
 
   onSelected(categoryId: string): void {
-    console.log('selected', categoryId);
     this.selectedCategorySubject$.next(+categoryId)
   }
 }
