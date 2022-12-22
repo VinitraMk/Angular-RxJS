@@ -34,7 +34,7 @@ export class ProductListComponent {
     })
   );
 
-  productsSimpleFilter$ = combineLatest([this.productService.productsWithCategories$, this.selectedCategoryAction$])
+  productsSimpleFilter$ = combineLatest([this.productService.productsWithAdd$, this.selectedCategoryAction$])
   .pipe(
     map(([products, selectedCategoryId]) => products.filter(product =>
       selectedCategoryId === 0 ? true : product.categoryId === selectedCategoryId))
@@ -43,7 +43,7 @@ export class ProductListComponent {
   constructor(private productService: ProductService, private categoryService: ProductCategoryService) { }
 
   onAdd(): void {
-    console.log('Not yet implemented');
+    this.productService.addProduct();
   }
 
   onSelected(categoryId: string): void {

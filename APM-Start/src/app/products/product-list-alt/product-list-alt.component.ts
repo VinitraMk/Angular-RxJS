@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 
-import { Subscription } from 'rxjs';
+import { combineLatest, Observable, Subscription, map, Subject, catchError, EMPTY } from 'rxjs';
 
 import { Product } from '../product';
 import { ProductService } from '../product.service';
@@ -9,28 +9,28 @@ import { ProductService } from '../product.service';
   selector: 'pm-product-list',
   templateUrl: './product-list-alt.component.html'
 })
-export class ProductListAltComponent implements OnInit, OnDestroy {
+export class ProductListAltComponent {
   pageTitle = 'Products';
-  errorMessage = '';
+  private errorMessageSubject = new Subject<string>();
+  errorMessage$ = this.errorMessageSubject.asObservable();
   selectedProductId = 0;
 
-  products: Product[] = [];
-  sub!: Subscription;
+  products$: Observable<Product[]> = this.productService.productsWithCategories$
+  .pipe(
+    catchError(err => {
+      this.errorMessageSubject.next(err);
+      return EMPTY;
+    })
+  );
+
+  selectedProduct$ = combineLatest([this.products$, this.productService.productSelectedAction$])
+  .pipe(
+    map(([products, selectedProductId]) => products.find(product => product.id === selectedProductId))
+  )
 
   constructor(private productService: ProductService) { }
 
-  ngOnInit(): void {
-    this.sub = this.productService.getProducts().subscribe({
-      next: products => this.products = products,
-      error: err => this.errorMessage = err
-    });
-  }
-
-  ngOnDestroy(): void {
-    this.sub.unsubscribe();
-  }
-
   onSelected(productId: number): void {
-    console.log('Not yet implemented');
+    this.productService.setProductSelection(productId);
   }
 }

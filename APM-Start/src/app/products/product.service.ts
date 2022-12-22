@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 
-import { catchError, Observable, tap, throwError, map, combineLatest } from 'rxjs';
+import { catchError, Observable, tap, throwError, map, combineLatest, BehaviorSubject, Subject, merge, scan } from 'rxjs';
 
 import { Product } from './product';
 import { ProductCategoryService } from '../product-categories/product-category.service';
@@ -32,7 +32,29 @@ export class ProductService {
     } as Product)))
   )
 
+  selectedProduct$:Observable<Product | undefined> = this.products$.pipe(
+    map(products => products.find(x => x.id === 5)),
+    tap(product => console.log('selected product', product))
+  )
+
+  private productSelectedSubject$ = new BehaviorSubject<number>(0);
+  productSelectedAction$ = this.productSelectedSubject$.asObservable();
+
+  private productAddSubject$ = new Subject();
+  productAddAction$ = this.productAddSubject$.asObservable();
+
+  productsWithAdd$ = merge(
+    this.productsWithCategories$,
+    this.productAddAction$
+  ).pipe(
+    scan((acc, value) => (value instanceof Array) ?  [...value] : [...acc, value], [] as Product[])
+  );
+
   constructor(private http: HttpClient, private productCategoryService: ProductCategoryService) { }
+
+  setProductSelection(productId: number) {
+    this.productSelectedSubject$.next(productId);
+  }
 
   getProducts(): Observable<Product[]> {
     return this.http.get<Product[]>(this.productsUrl)
@@ -55,6 +77,11 @@ export class ProductService {
           searchKey: [product.productName]
         } as Product)))
       )
+  }
+
+  addProduct(newProduct?:Product) {
+    newProduct = newProduct || this.fakeProduct();
+    this.productAddSubject$.next(newProduct);
   }
 
   private fakeProduct(): Product {
