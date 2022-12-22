@@ -6,6 +6,7 @@ import { catchError, Observable, tap, throwError,
 
 import { Product } from './product';
 import { ProductCategoryService } from '../product-categories/product-category.service';
+import { SupplierService } from '../suppliers/supplier.service';
 
 @Injectable({
   providedIn: 'root'
@@ -53,7 +54,8 @@ export class ProductService {
     scan((acc, value) => (value instanceof Array) ?  [...value] : [...acc, value], [] as Product[])
   );
 
-  constructor(private http: HttpClient, private productCategoryService: ProductCategoryService) { }
+  constructor(private http: HttpClient, private productCategoryService: ProductCategoryService,
+    private supplierService: SupplierService) { }
 
   setProductSelection(productId: number) {
     this.productSelectedSubject$.next(productId);
