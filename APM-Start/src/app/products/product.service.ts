@@ -2,11 +2,12 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 
 import { catchError, Observable, tap, throwError,
-  map, combineLatest, BehaviorSubject, Subject, merge, scan, shareReplay } from 'rxjs';
+  map, combineLatest, BehaviorSubject, Subject, merge, scan, shareReplay, filter, switchMap, forkJoin, of } from 'rxjs';
 
 import { Product } from './product';
 import { ProductCategoryService } from '../product-categories/product-category.service';
 import { SupplierService } from '../suppliers/supplier.service';
+import { Supplier } from '../suppliers/supplier';
 
 @Injectable({
   providedIn: 'root'
@@ -47,6 +48,7 @@ export class ProductService {
   ])
   .pipe(
     map(([products, selectedProductId]) => products.find(x => x.id === selectedProductId)),
+    tap(selectedProduct => console.log('selected product', selectedProduct)),
     shareReplay(1)
   )
 
@@ -56,6 +58,18 @@ export class ProductService {
   ])
   .pipe(
     map(([selectedProduct, suppliers]) => suppliers.filter(supplier => selectedProduct?.supplierIds?.includes(supplier.id)))
+  )
+
+  selectedProductSupplierJustInTime$ = this.selectedProduct$
+  .pipe(
+    filter(product => Boolean(product)),
+    switchMap(selectedProduct => {
+      if (selectedProduct?.supplierIds) {
+        return forkJoin(selectedProduct.supplierIds.map(supplierId => this.http.get<Supplier>(`${this.suppliersUrl}/${supplierId}`)))
+      }
+      return of([])
+    }),
+    tap(suppliers => console.log('product suppliers', JSON.stringify(suppliers)))
   )
 
   productsWithAdd$ = merge(

@@ -31,7 +31,7 @@ export class ProductDetailComponent {
     map(([products, selectedProductId]) => products.find(product => product.id === selectedProductId))
   )
 
-  productSupplier$ = this.productService.selectedProductSupplier$
+  productSupplier$ = this.productService.selectedProductSupplierJustInTime$
   .pipe(
     catchError(err => {
       this.errorMessageSubject.next(err);
