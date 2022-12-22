@@ -13,7 +13,6 @@ export class ProductListAltComponent {
   pageTitle = 'Products';
   private errorMessageSubject = new Subject<string>();
   errorMessage$ = this.errorMessageSubject.asObservable();
-  selectedProductId = 0;
 
   products$: Observable<Product[]> = this.productService.productsWithCategories$
   .pipe(

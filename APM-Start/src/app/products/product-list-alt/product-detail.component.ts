@@ -16,7 +16,6 @@ export class ProductDetailComponent {
   errorMessage$ = this.errorMessageSubject.asObservable();
 
   product: Product | null = null;
-  productSuppliers: Supplier[] | null = null;
   products$ : Observable<Product[]> = this.productService.getProductsWithCategories()
   .pipe(
     catchError(err => {
@@ -30,6 +29,14 @@ export class ProductDetailComponent {
     this.productService.productSelectedAction$
   ]).pipe(
     map(([products, selectedProductId]) => products.find(product => product.id === selectedProductId))
+  )
+
+  productSupplier$ = this.productService.selectedProductSupplier$
+  .pipe(
+    catchError(err => {
+      this.errorMessageSubject.next(err);
+      return EMPTY;
+    })
   )
   
   constructor(private productService: ProductService) { }

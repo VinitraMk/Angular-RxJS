@@ -35,17 +35,28 @@ export class ProductService {
     shareReplay(1)
   )
 
-  selectedProduct$:Observable<Product | undefined> = this.products$.pipe(
-    map(products => products.find(x => x.id === 5)),
-    tap(product => console.log('selected product', product)),
-    shareReplay(1)
-  )
-
-  private productSelectedSubject$ = new BehaviorSubject<number>(0);
+  private productSelectedSubject$ = new BehaviorSubject<number>(1);
   productSelectedAction$ = this.productSelectedSubject$.asObservable();
 
   private productAddSubject$ = new Subject();
   productAddAction$ = this.productAddSubject$.asObservable();
+
+  selectedProduct$ = combineLatest([
+    this.productsWithCategories$,
+    this.productSelectedAction$
+  ])
+  .pipe(
+    map(([products, selectedProductId]) => products.find(x => x.id === selectedProductId)),
+    shareReplay(1)
+  )
+
+  selectedProductSupplier$ = combineLatest([
+    this.selectedProduct$,
+    this.supplierService.supplier$
+  ])
+  .pipe(
+    map(([selectedProduct, suppliers]) => suppliers.filter(supplier => selectedProduct?.supplierIds?.includes(supplier.id)))
+  )
 
   productsWithAdd$ = merge(
     this.productsWithCategories$,
